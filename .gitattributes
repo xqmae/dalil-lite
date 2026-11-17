@@ -4,3 +4,4 @@
 *.h text eol=lf
 *.cmake text eol=lf
 *.swift text eol=lf
+*.yaml text eol=lf
