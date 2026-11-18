@@ -39,6 +39,9 @@ dependencies:
   pdf: ^3.13.1
   syncfusion_flutter_pdfviewer: ^35.1.46
   pdfrx: ^3.0.0
+  file_picker: ^13.4.0
+  path_provider: ^2.1.6
+  uuid: ^4.6.0
 
 dev_dependencies:
   flutter_test:

@@ -7,6 +7,13 @@ class PdfrxEngine implements PdfEngine {
   PdfDocument? _doc;
 
   @override
+  int get pageCount {
+    final doc = _doc;
+    if (doc == null) throw StateError('open() has not succeeded');
+    return doc.pages.length;
+  }
+  
+  @override
   Future<void> openPdf(String path, {String? password}) async {
     if (!File(path).existsSync()) {
       throw PdfOpenException(PdfOpenReason.fileNotFound, 'File not found: $path');
