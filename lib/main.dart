@@ -1,5 +1,7 @@
+import 'package:dalil_lite/pdf/pdf_engine.dart';
+import 'package:dalil_lite/pdf/pdfrx_engine.dart';
+import 'package:dalil_lite/widgets/pdf_page_text.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:pdfrx/pdfrx.dart';
 
 void main() {
   runApp(const MyApp());
@@ -55,6 +57,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final PdfEngine _engine = PdfrxEngine();
+  late final Future<void> _opened = _engine.openPdf('assets/fixtures/sample.pdf');
+
+  @override
+  void dispose() {
+    _engine.closePdf();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -73,7 +84,16 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: PdfViewer.asset("assets/fixtures/sample_ar.pdf")
+      body: FutureBuilder<void>(
+        future: _opened,
+        builder: (context, snap) {
+          if (snap.hasError) return Center(child: Text('${snap.error}'));
+          if (snap.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return PdfPageText(engine: _engine, index: 0);
+        },
+      ),
     );
   }
 }
