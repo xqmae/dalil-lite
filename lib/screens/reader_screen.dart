@@ -1,7 +1,7 @@
-import 'package:dalil_lite/library/library_paths.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../library/library_item.dart';
+import '../library/library_paths.dart';
 import '../pdf/pdf_engine.dart';
 import '../pdf/pdfrx_engine.dart';
 import '../widgets/pdf_page_text.dart';
@@ -20,9 +20,16 @@ class _ReaderScreenState extends State<ReaderScreen> {
   final PdfEngine _engine = PdfrxEngine();
   late final Future<void> _opened = _open();
 
+  int _index = 0; // 0-based, the page currently shown
+
   Future<void> _open() async {
     final file = await libraryFile(widget.item);
     await _engine.openPdf(file.path, password: widget.password);
+  }
+
+  void _goTo(int index) {
+    if (index < 0 || index >= _engine.pageCount) return;
+    setState(() => _index = index);
   }
 
   @override
@@ -44,7 +51,40 @@ class _ReaderScreenState extends State<ReaderScreen> {
           if (snap.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
-          return PdfPageText(engine: _engine, index: 0);
+
+          final count = _engine.pageCount;
+          if (count == 0) {
+            return const Center(child: Text('This file has no pages.'));
+          }
+
+          final atFirst = _index == 0;
+          final atLast = _index >= count - 1;
+
+          return Column(
+            children: [
+              Expanded(
+                // PdfPageText reloads its text when index changes.
+                child: PdfPageText(engine: _engine, index: _index),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    tooltip: 'Previous page',
+                    // onPressed: null disables the button.
+                    onPressed: atFirst ? null : () => _goTo(_index - 1),
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                  Text('Page ${_index + 1} of $count'),
+                  IconButton(
+                    tooltip: 'Next page',
+                    onPressed: atLast ? null : () => _goTo(_index + 1),
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                ],
+              ),
+            ],
+          );
         },
       ),
     );
