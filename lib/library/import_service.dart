@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../pdf/pdf_engine.dart';
 import '../pdf/pdfrx_engine.dart';
 import 'library_item.dart';
+import 'library_paths.dart';
 import 'library_repository.dart';
 
 class ImportException implements Exception {
@@ -27,17 +27,13 @@ class ImportService {
     required String sourcePath,
     required String displayName,
   }) async {
-    final docs = await getApplicationDocumentsDirectory();
-    final libraryDir = Directory('${docs.path}/library');
-    await libraryDir.create(recursive: true);
-
     final id = const Uuid().v4();
-    final copy = File('${libraryDir.path}/$id.pdf');
-
-    // Copy first, before any other await. Android's picker path is temporary.
-    await File(sourcePath).copy(copy.path);
+    final copy = await libraryFileById(id);
 
     try {
+      // Copy first. The picker's path can be temporary on Android.
+      await File(sourcePath).copy(copy.path);
+
       final pageCount = await _readablePageCount(copy.path);
       final item = LibraryItem(
         id: id,
@@ -48,7 +44,7 @@ class ImportService {
       await _repo.add(item);
       return item;
     } catch (_) {
-      // Any failure leaves no copy and no record behind.
+      // Any failure, including a partial copy, leaves no file or record behind.
       if (await copy.exists()) await copy.delete();
       rethrow;
     }
