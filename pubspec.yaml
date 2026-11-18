@@ -37,6 +37,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   syncfusion_flutter_pdf: ^35.1.46
   pdf: ^3.13.1
+  syncfusion_flutter_pdfviewer: ^35.1.46
+  pdfrx: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +66,8 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/fixtures/sample.pdf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
