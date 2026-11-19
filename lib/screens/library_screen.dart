@@ -77,78 +77,78 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _open(LibraryItem item) async {
-  String? password;
-  if (item.pageCount == null) {
-    password = await _unlock(item);
-    if (password == null) return; // cancelled
+    String? password;
+    if (item.pageCount == null) {
+      password = await _unlock(item);
+      if (password == null) return; // cancelled
+    }
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReaderScreen(item: item, password: password),
+      ),
+    );
   }
-  if (!mounted) return;
-  await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => ReaderScreen(item: item, password: password),
-    ),
-  );
-}
 
-/// Asks for a password until the file opens or the user cancels.
-Future<String?> _unlock(LibraryItem item) async {
-  final file = await libraryFile(item);
-  var wrong = false;
+  /// Asks for a password until the file opens or the user cancels.
+  Future<String?> _unlock(LibraryItem item) async {
+    final file = await libraryFile(item);
+    var wrong = false;
 
-  while (true) {
-    if (!mounted) return null;
-    final password = await askPassword(context, wrong: wrong);
-    if (password == null) return null; // cancelled
+    while (true) {
+      if (!mounted) return null;
+      final password = await askPassword(context, wrong: wrong);
+      if (password == null) return null; // cancelled
 
-    final engine = PdfrxEngine();
-    try {
-      await engine.openPdf(file.path, password: password);
-      return password;
-    } on PdfOpenException catch (e) {
-      if (e.reason != PdfOpenReason.passwordProtected) {
-        _showMessage("This file can't be opened.");
-        return null;
+      final engine = PdfrxEngine();
+      try {
+        await engine.openPdf(file.path, password: password);
+        return password;
+      } on PdfOpenException catch (e) {
+        if (e.reason != PdfOpenReason.passwordProtected) {
+          _showMessage("This file can't be opened.");
+          return null;
+        }
+        wrong = true; // loop and ask again
+      } finally {
+        await engine.closePdf();
       }
-      wrong = true; // loop and ask again
-    } finally {
-      await engine.closePdf();
     }
   }
-}
 
-Future<void> _delete(LibraryItem item) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text('Delete ${item.name}?'),
-      content: const Text('The copy stored in the app will be removed.'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Delete'),
-        ),
-      ],
-    ),
-  );
-  if (confirmed != true) return;
+  Future<void> _delete(LibraryItem item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Delete ${item.name}?'),
+        content: const Text('The copy stored in the app will be removed.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
 
-  final repo = _repo;
-  if (repo == null) return;
+    final repo = _repo;
+    if (repo == null) return;
 
-  try {
-    final file = await libraryFile(item);
-    if (await file.exists()) await file.delete();
-    await repo.remove(item.id);
-  } catch (_) {
-    _showMessage('Could not delete this file.');
+    try {
+      final file = await libraryFile(item);
+      if (await file.exists()) await file.delete();
+      await repo.remove(item.id);
+    } catch (_) {
+      _showMessage('Could not delete this file.');
+    }
+    await _reload();
   }
-  await _reload();
-}
 
   @override
   Widget build(BuildContext context) {
@@ -166,17 +166,19 @@ Future<void> _delete(LibraryItem item) async {
               children: [
                 for (final item in _items)
                   ListTile(
-  title: Text(item.name),
-  subtitle: Text(item.pageCount == null
-      ? 'Page count unknown (encrypted)'
-      : '${item.pageCount} pages'),
-  onTap: () => _open(item),
-  trailing: IconButton(
-    tooltip: 'Delete ${item.name}',
-    icon: const Icon(Icons.delete_outline),
-    onPressed: () => _delete(item),
-  ),
-),
+                    title: Text(item.name),
+                    subtitle: Text(
+                      item.pageCount == null
+                          ? 'Page count unknown (encrypted)'
+                          : '${item.pageCount} pages',
+                    ),
+                    onTap: () => _open(item),
+                    trailing: IconButton(
+                      tooltip: 'Delete ${item.name}',
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => _delete(item),
+                    ),
+                  ),
               ],
             ),
     );

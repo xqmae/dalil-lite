@@ -7,7 +7,7 @@ class PdfPageText extends StatefulWidget {
   const PdfPageText({super.key, required this.engine, required this.index});
 
   final PdfEngine engine; // opened and closed by the caller
-  final int index;        // 0-based
+  final int index; // 0-based
 
   @override
   State<PdfPageText> createState() => _PdfPageTextState();

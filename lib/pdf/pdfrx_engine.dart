@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+
 import 'package:dalil_lite/pdf/pdf_engine.dart';
 import 'package:pdfrx/pdfrx.dart';
 
@@ -12,16 +13,23 @@ class PdfrxEngine implements PdfEngine {
     if (doc == null) throw StateError('open() has not succeeded');
     return doc.pages.length;
   }
-  
+
   @override
   Future<void> openPdf(String path, {String? password}) async {
     if (!File(path).existsSync()) {
-      throw PdfOpenException(PdfOpenReason.fileNotFound, 'File not found: $path');
+      throw PdfOpenException(
+        PdfOpenReason.fileNotFound,
+        'File not found: $path',
+      );
     }
     try {
       _doc = await PdfDocument.openFile(
         path,
-        passwordProvider: password == null ? null : createSimplePasswordProvider(password), // returns the password once, then null
+        passwordProvider: password == null
+            ? null
+            : createSimplePasswordProvider(
+                password,
+              ), // returns the password once, then null
       );
     } on PdfPasswordException catch (e) {
       throw PdfOpenException(PdfOpenReason.passwordProtected, e.message);

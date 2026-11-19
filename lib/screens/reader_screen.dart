@@ -35,27 +35,27 @@ class _ReaderScreenState extends State<ReaderScreen> {
     setState(() => _index = index);
   }
 
-@override
-void dispose() {
-  _engine.closePdf();
-  _pageField.dispose();
-  super.dispose();
-}
+  @override
+  void dispose() {
+    _engine.closePdf();
+    _pageField.dispose();
+    super.dispose();
+  }
 
   void _jumpFromField(int pageCount) {
-  final result = parsePageInput(_pageField.text, pageCount);
-  switch (result) {
-    case ValidPage(:final index):
-      setState(() {
-        _pageError = null;
-        _index = index;
-      });
-      _pageField.clear();
-      FocusScope.of(context).unfocus();
-    case InvalidPage(:final message):
-      setState(() => _pageError = message);
+    final result = parsePageInput(_pageField.text, pageCount);
+    switch (result) {
+      case ValidPage(:final index):
+        setState(() {
+          _pageError = null;
+          _index = index;
+        });
+        _pageField.clear();
+        FocusScope.of(context).unfocus();
+      case InvalidPage(:final message):
+        setState(() => _pageError = message);
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -103,19 +103,19 @@ void dispose() {
                 ],
               ),
               Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 16),
-  child: TextField(
-    controller: _pageField,
-    keyboardType: TextInputType.number,
-    textInputAction: TextInputAction.go,
-    decoration: InputDecoration(
-      labelText: 'Go to page',
-      errorText: _pageError,
-      border: const OutlineInputBorder(),
-    ),
-    onSubmitted: (_) => _jumpFromField(count),
-  ),
-),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _pageField,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.go,
+                  decoration: InputDecoration(
+                    labelText: 'Go to page',
+                    errorText: _pageError,
+                    border: const OutlineInputBorder(),
+                  ),
+                  onSubmitted: (_) => _jumpFromField(count),
+                ),
+              ),
             ],
           );
         },
