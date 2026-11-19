@@ -1,3 +1,4 @@
+import 'package:dalil_lite/reader/page_input.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../library/library_item.dart';
@@ -21,6 +22,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
   late final Future<void> _opened = _open();
 
   int _index = 0; // 0-based, the page currently shown
+  final TextEditingController _pageField = TextEditingController();
+  String? _pageError;
 
   Future<void> _open() async {
     final file = await libraryFile(widget.item);
@@ -32,11 +35,27 @@ class _ReaderScreenState extends State<ReaderScreen> {
     setState(() => _index = index);
   }
 
-  @override
-  void dispose() {
-    _engine.closePdf();
-    super.dispose();
+@override
+void dispose() {
+  _engine.closePdf();
+  _pageField.dispose();
+  super.dispose();
+}
+
+  void _jumpFromField(int pageCount) {
+  final result = parsePageInput(_pageField.text, pageCount);
+  switch (result) {
+    case ValidPage(:final index):
+      setState(() {
+        _pageError = null;
+        _index = index;
+      });
+      _pageField.clear();
+      FocusScope.of(context).unfocus();
+    case InvalidPage(:final message):
+      setState(() => _pageError = message);
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +102,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   ),
                 ],
               ),
+              Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  child: TextField(
+    controller: _pageField,
+    keyboardType: TextInputType.number,
+    textInputAction: TextInputAction.go,
+    decoration: InputDecoration(
+      labelText: 'Go to page',
+      errorText: _pageError,
+      border: const OutlineInputBorder(),
+    ),
+    onSubmitted: (_) => _jumpFromField(count),
+  ),
+),
             ],
           );
         },
